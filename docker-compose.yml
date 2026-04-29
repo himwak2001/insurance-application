@@ -1,0 +1,54 @@
+services:
+  insurance_db:
+    image: postgres:17
+    container_name: insurance_postgresql
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: insurance_db
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - insurance-claim-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d insurance_db -U root"]
+      timeout: 10s
+      retries: 10
+      interval: 10s
+      start_period: 10s
+
+  insurance_keycloak:
+    image: quay.io/keycloak/keycloak:26.0.7
+    container_name: insurance_keycloak
+    ports:
+      - "8180:8080"
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    command:
+      - "start-dev"
+    networks:
+      - insurance-claim-network
+
+  insurance_redis:
+    image: redis:latest
+    container_name: insurance_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - insurance-claim-network
+    command: ["redis-server"]
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+
+networks:
+  insurance-claim-network:
+    driver: "bridge"
+
+volumes:
+  db_data:
