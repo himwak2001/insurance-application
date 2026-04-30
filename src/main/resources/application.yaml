@@ -1,3 +1,32 @@
 spring:
   application:
     name: insurance-application
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/insurance_db
+    username: root
+    password: root
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  liquibase:
+    enabled: true
+    change-log: db/changelog/db.changelog-master.yaml
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: "http://localhost:8180/realms/insurance_realme/protocol/openid-connect/certs"
+
+info:
+  app:
+    name: "Insurance Policy & Claims Management System "
+    description: "This is a backend platform for a general insurance company that digitizes and automates the entire insurance lifecycle — from a customer buying a policy to filing a claim and getting reimbursed."
+    version: "1.0.0"

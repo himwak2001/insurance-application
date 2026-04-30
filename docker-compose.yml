@@ -1,6 +1,6 @@
 services:
   insurance_db:
-    image: postgres:17
+    image: bitnami/postgresql:latest
     container_name: insurance_postgresql
     ports:
       - "5432:5432"
