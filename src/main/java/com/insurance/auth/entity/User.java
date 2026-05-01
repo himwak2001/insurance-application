@@ -44,6 +44,14 @@ public class User {
     @Column(name = "updated_at")
     private LocalDate updatedAt;
 
+    public User(UUID id, String keycloakId, String fullName, String email, Role role) {
+        this.id = id;
+        this.keycloakId = keycloakId;
+        this.fullName = fullName;
+        this.email = email;
+        this.role = role;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
