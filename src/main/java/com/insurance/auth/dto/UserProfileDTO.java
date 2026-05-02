@@ -28,6 +28,14 @@ public class UserProfileDTO {
     private LocalDate createdAt;
     private LocalDate updatedAt;
 
+    public UserProfileDTO(UUID id, String keycloakId, String fullName, String email, Role role) {
+        this.id = id;
+        this.keycloakId = keycloakId;
+        this.fullName = fullName;
+        this.email = email;
+        this.role = role;
+    }
+
     public UserProfileDTO(String keycloakId, String fullName, String email, Role role) {
         this.keycloakId = keycloakId;
         this.fullName = fullName;
