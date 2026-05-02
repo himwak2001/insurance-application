@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @RestController
-@RequestMapping(path = "/api/v1/", produces = {MediaType.APPLICATION_JSON_VALUE})
+@RequestMapping(path = "/api/v1", produces = {MediaType.APPLICATION_JSON_VALUE})
 @RequiredArgsConstructor
 public class AuthSyncController {
     private final AuthSyncServiceImpl authSyncService;
@@ -31,7 +31,7 @@ public class AuthSyncController {
     @GetMapping(path = "/me")
     public ResponseEntity<UserProfileDTO> getUserById() {
         UserProfileDTO dto = authSyncService.getUser();
-        return ResponseEntity.status(HttpStatus.FOUND)
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(dto);
     }
 }
