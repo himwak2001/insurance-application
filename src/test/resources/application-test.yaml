@@ -1,0 +1,8 @@
+keycloak:
+  test:
+    url: "http://localhost:8180"
+    realm: "insurance_realme"
+    client-id: "insurance-backend"
+    client-secret: "MF92c38CxEEzeDGjDN9Hr44HFoqmnyE9"
+    username: "test_customer"
+    password: "test@customer"
