@@ -1,6 +1,7 @@
 package com.insurance.auth.service;
 
 import com.insurance.auth.dto.UserProfileDTO;
+import com.insurance.auth.dto.UserProfileUpdateRequest;
 import com.insurance.auth.entity.User;
 import com.insurance.auth.helper.AuthenticationHelper;
 import com.insurance.auth.mapper.UserMapper;
@@ -51,5 +52,13 @@ public class AuthSyncServiceImpl implements IAuthSyncService {
         UserProfileDTO userDto = new UserProfileDTO();
         UserMapper.mapUserToUserDto(userDto, existingUser.get());
         return userDto;
+    }
+
+    @Override
+    public void updateUserDetails(UserProfileUpdateRequest updateRequest) {
+        String keycloakId = AuthenticationHelper.getLoggedInUserKeycloakId();
+        User existingUser = userRepository.findByKeycloakId(keycloakId).orElseThrow(() -> new ResourceNotFoundException("User", "Keycloak Id", keycloakId));
+        UserMapper.mapUserRequestToUser(updateRequest, existingUser);
+        userRepository.save(existingUser);
     }
 }

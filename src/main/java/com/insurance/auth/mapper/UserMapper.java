@@ -1,6 +1,7 @@
 package com.insurance.auth.mapper;
 
 import com.insurance.auth.dto.UserProfileDTO;
+import com.insurance.auth.dto.UserProfileUpdateRequest;
 import com.insurance.auth.entity.User;
 
 public class UserMapper {
@@ -23,5 +24,11 @@ public class UserMapper {
         dto.setDateOfBirth(user.getDateOfBirth());
         dto.setAddress(user.getAddress());
         dto.setRole(user.getRole());
+    }
+
+    public static void mapUserRequestToUser(UserProfileUpdateRequest request, User existingUser) {
+        existingUser.setPhone(request.getPhone());
+        existingUser.setAddress(request.getAddress());
+        existingUser.setFullName(request.getFullName());
     }
 }
