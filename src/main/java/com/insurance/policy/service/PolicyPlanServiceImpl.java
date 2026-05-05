@@ -68,4 +68,17 @@ public class PolicyPlanServiceImpl implements IPolicyPlanService {
     public List<PolicyPlanResponseDto> activePolicyPlans(int pageNumber, int pageSize, String insuranceType) {
         return policyPlanRepository.findAllActivePlans(PageRequest.of(pageNumber, pageSize), InsuranceType.valueOf(insuranceType.trim().toUpperCase()));
     }
+
+    @Override
+    public PolicyPlanResponseDto getPolicyPlan(String planId) {
+        Optional<PolicyPlan> existingPolicy = policyPlanRepository.findById(UUID.fromString(planId));
+        if (existingPolicy.isEmpty()) {
+            throw new ResourceNotFoundException("PolicyPlan", "Policy Plan Id", planId);
+        }
+        PolicyPlanResponseDto responseDto = new PolicyPlanResponseDto();
+        PolicyPlanMapper.mapPolicyPlanToPolicyPlanResponseDto(responseDto, existingPolicy.get());
+        return responseDto;
+    }
+
+
 }

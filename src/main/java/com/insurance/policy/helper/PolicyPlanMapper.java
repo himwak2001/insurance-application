@@ -1,6 +1,7 @@
 package com.insurance.policy.helper;
 
 import com.insurance.policy.dto.PolicyPlanRequestDto;
+import com.insurance.policy.dto.PolicyPlanResponseDto;
 import com.insurance.policy.entity.InsuranceType;
 import com.insurance.policy.entity.PolicyPlan;
 
@@ -15,5 +16,17 @@ public class PolicyPlanMapper {
         policyPlan.setMinAge(requestDto.getMinAge());
         policyPlan.setMaxAge(requestDto.getMaxAge());
         policyPlan.setExclusions(requestDto.getExclusions());
+    }
+
+    public static void mapPolicyPlanToPolicyPlanResponseDto(PolicyPlanResponseDto responseDto, PolicyPlan policyPlan) {
+        responseDto.setId(policyPlan.getId());
+        responseDto.setPlanName(policyPlan.getPlanName());
+        responseDto.setInsuranceType(policyPlan.getInsuranceType());
+        responseDto.setCoverageAmount(policyPlan.getCoverageAmount());
+        responseDto.setBasePremium(policyPlan.getBasePremium());
+        responseDto.setDurationMonths(policyPlan.getDurationMonths());
+        responseDto.setMinAge(policyPlan.getMinAge());
+        responseDto.setMaxAge(policyPlan.getMaxAge());
+        responseDto.setExclusions(policyPlan.getExclusions());
     }
 }
