@@ -54,4 +54,12 @@ public class PolicyPlanController {
                 .status(HttpStatus.OK)
                 .body(responseDtoList);
     }
+
+    @GetMapping("/{planId}")
+    public ResponseEntity<?> findPolicyPlanById(@PathVariable(name = "planId") String planId) {
+        PolicyPlanResponseDto responseDto = serviceImpl.getPolicyPlan(planId);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(responseDto);
+    }
 }

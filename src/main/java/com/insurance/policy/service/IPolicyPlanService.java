@@ -17,4 +17,7 @@ public interface IPolicyPlanService {
 
     // method to return all active policy plan with pagination
     List<PolicyPlanResponseDto> activePolicyPlans(int pageNumber, int pageSize, String insuranceType);
+
+    // method to return policy plan based on policy plan id
+    PolicyPlanResponseDto getPolicyPlan(String planId);
 }
