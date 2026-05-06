@@ -12,6 +12,8 @@ import com.insurance.policy.helper.ValidatePolicyPlan;
 import com.insurance.policy.repository.IPolicyPlanRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +27,7 @@ import java.util.UUID;
 public class PolicyPlanServiceImpl implements IPolicyPlanService {
     private final IPolicyPlanRepository policyPlanRepository;
 
+    @CacheEvict(value = "policyPlanCache", key = "#requestDto.planName")
     @Override
     public void createPolicyPlan(PolicyPlanRequestDto requestDto) {
         Optional<PolicyPlan> existingPlan = policyPlanRepository.findByPlanName(requestDto.getPlanName());
@@ -43,6 +46,7 @@ public class PolicyPlanServiceImpl implements IPolicyPlanService {
         policyPlanRepository.save(newPolicyPlan);
     }
 
+    @CacheEvict(value = "policyPlanCache", key = "#policyId")
     @Override
     public String updatePolicyPlan(PolicyPlanRequestDto requestDto, String policyId) {
         Optional<PolicyPlan> existingPolicy = policyPlanRepository.findById(UUID.fromString(policyId));
@@ -54,6 +58,7 @@ public class PolicyPlanServiceImpl implements IPolicyPlanService {
         return policyId;
     }
 
+    @CacheEvict(value = "policyPlanCache", key = "#policyId")
     @Override
     public void deactivatePolicyPlan(String policyId) {
         Optional<PolicyPlan> existingPolicy = policyPlanRepository.findById(UUID.fromString(policyId));
@@ -64,11 +69,13 @@ public class PolicyPlanServiceImpl implements IPolicyPlanService {
         policyPlanRepository.save(existingPolicy.get());
     }
 
+    @Cacheable(value = "policyPlanCache", key = "#insuranceType")
     @Override
     public List<PolicyPlanResponseDto> activePolicyPlans(int pageNumber, int pageSize, String insuranceType) {
         return policyPlanRepository.findAllActivePlans(PageRequest.of(pageNumber, pageSize), InsuranceType.valueOf(insuranceType.trim().toUpperCase()));
     }
 
+    @Cacheable(value = "policyPlanCache", key = "#planId")
     @Override
     public PolicyPlanResponseDto getPolicyPlan(String planId) {
         Optional<PolicyPlan> existingPolicy = policyPlanRepository.findById(UUID.fromString(planId));
