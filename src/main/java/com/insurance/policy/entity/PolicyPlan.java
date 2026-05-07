@@ -58,6 +58,29 @@ public class PolicyPlan {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    public PolicyPlan(String planName, InsuranceType insuranceType, BigDecimal coverageAmount, BigDecimal basePremium, Integer durationMonths, Integer minAge, Integer maxAge, String exclusions) {
+        this.planName = planName;
+        this.insuranceType = insuranceType;
+        this.coverageAmount = coverageAmount;
+        this.basePremium = basePremium;
+        this.durationMonths = durationMonths;
+        this.minAge = minAge;
+        this.maxAge = maxAge;
+        this.exclusions = exclusions;
+    }
+
+    public PolicyPlan(UUID id, String planName, InsuranceType insuranceType, BigDecimal coverageAmount, BigDecimal basePremium, Integer durationMonths, Integer minAge, Integer maxAge, String exclusions) {
+        this.id = id;
+        this.planName = planName;
+        this.insuranceType = insuranceType;
+        this.coverageAmount = coverageAmount;
+        this.basePremium = basePremium;
+        this.durationMonths = durationMonths;
+        this.minAge = minAge;
+        this.maxAge = maxAge;
+        this.exclusions = exclusions;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
