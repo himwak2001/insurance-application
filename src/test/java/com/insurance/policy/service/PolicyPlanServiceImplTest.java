@@ -2,6 +2,7 @@ package com.insurance.policy.service;
 
 import com.insurance.common.exception.PolicyValidationException;
 import com.insurance.common.exception.ResourceAlreadyExistException;
+import com.insurance.common.exception.ResourceNotFoundException;
 import com.insurance.policy.dto.PolicyPlanRequestDto;
 import com.insurance.policy.dto.PolicyPlanResponseDto;
 import com.insurance.policy.entity.InsuranceType;
@@ -38,6 +39,7 @@ class PolicyPlanServiceImplTest {
 
     private PolicyPlanResponseDto responseDto;
     private PolicyPlanRequestDto requestDto;
+    private PolicyPlan updatedPolicyPlan;
     private InsuranceType insuranceType;
     private PolicyPlan savedPolicyPlan;
     private PolicyPlan newPolicyPlan;
@@ -84,6 +86,18 @@ class PolicyPlanServiceImplTest {
                 21,
                 60,
                 "dummy_exclusions"
+        );
+
+        updatedPolicyPlan = new PolicyPlan(
+                policyPlanId,
+                "dummy_plan_updated",
+                insuranceType,
+                new BigDecimal(600000),
+                new BigDecimal(1000),
+                18,
+                21,
+                60,
+                "dummy_exclusions_updated"
         );
 
         newPolicyPlan = new PolicyPlan(
@@ -155,7 +169,37 @@ class PolicyPlanServiceImplTest {
     }
 
     @Test
-    void updatePolicyPlan() {
+    void updatePolicyPlan_whenPlanExists_shouldUpdatePolicyPlan() {
+        // arrange
+        try(MockedStatic<PolicyPlanMapper> policyPlanMapperMockedStatic = Mockito.mockStatic(PolicyPlanMapper.class)){
+            when(policyPlanRepository.findById(policyPlanId)).thenReturn(Optional.of(savedPolicyPlan));
+            when(policyPlanRepository.save(savedPolicyPlan)).thenReturn(updatedPolicyPlan);
+
+            // act
+            policyPlanService.updatePolicyPlan(requestDto, policyPlanId.toString());
+
+            // assert
+            assertNotNull(savedPolicyPlan);
+            assertEquals("dummy_plan_updated", updatedPolicyPlan.getPlanName());
+            assertEquals(new BigDecimal(600000), updatedPolicyPlan.getCoverageAmount());
+            assertEquals(new BigDecimal(1000), updatedPolicyPlan.getBasePremium());
+            assertEquals(18, updatedPolicyPlan.getDurationMonths());
+            verify(policyPlanRepository, times(1)).findById(policyPlanId);
+            verify(policyPlanRepository, times(1)).save(savedPolicyPlan);
+            policyPlanMapperMockedStatic.verify(() -> PolicyPlanMapper.mapPolicyPlanRequestDtoToPolicyPlan(requestDto, savedPolicyPlan, true));
+        }
+    }
+
+    @Test
+    void updatePolicyPlan_whenPlanDoesNotExists_shouldUpdatePolicyPlan(){
+        // arrange
+        try(MockedStatic<PolicyPlanMapper> policyPlanMapperMockedStatic = Mockito.mockStatic(PolicyPlanMapper.class)){
+            when(policyPlanRepository.findById(policyPlanId)).thenReturn(Optional.empty());
+
+            // act & assert
+            assertThrows(ResourceNotFoundException.class, () -> policyPlanService.updatePolicyPlan(requestDto, policyPlanId.toString()));
+            verify(policyPlanRepository, times(1)).findById(policyPlanId);
+        }
     }
 
     @Test
