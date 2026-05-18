@@ -11,6 +11,8 @@ import com.insurance.policy.helper.PolicyPlanMapper;
 import com.insurance.policy.helper.ValidatePolicyPlan;
 import com.insurance.policy.repository.IPolicyPlanRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -25,192 +28,160 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName(value = "Policy Plan Service Unit Tests")
 class PolicyPlanServiceImplTest {
     @Mock
     private IPolicyPlanRepository policyPlanRepository;
 
+    @Mock
+    private PolicyPlanMapper policyPlanMapper;
+
+    @Mock
+    private ValidatePolicyPlan validatePolicyPlan;
+
     @InjectMocks
     private PolicyPlanServiceImpl policyPlanService;
 
+    private UUID policyPlanId;
     private PolicyPlanResponseDto responseDto;
     private PolicyPlanRequestDto requestDto;
-    private PolicyPlan updatedPolicyPlan;
-    private InsuranceType insuranceType;
-    private PolicyPlan savedPolicyPlan;
-    private PolicyPlan newPolicyPlan;
-    private List<String> validList;
-    private List<String> inValidList;
-    private UUID policyPlanId;
-
+    private PolicyPlan policyPlan;
 
     @BeforeEach
     void setUp() {
         policyPlanId = UUID.randomUUID();
-        insuranceType = InsuranceType.HEALTH;
 
         requestDto = new PolicyPlanRequestDto(
-                "dummy_plan_name",
-                insuranceType.name(),
-                new BigDecimal(500000),
-                new BigDecimal(500),
-                12,
-                21,
-                60,
-                "dummy_exclusions"
+                "Standard Health", "HEALTH", new BigDecimal("500000"),
+                new BigDecimal("500"), 12, 21, 60, "None"
         );
 
-        responseDto = new PolicyPlanResponseDto(
-                policyPlanId,
-                "dummy_plan_name",
-                insuranceType,
-                new BigDecimal(500000),
-                new BigDecimal(500),
-                12,
-                21,
-                60,
-                "dummy_exclusions"
-        );
-
-        savedPolicyPlan = new PolicyPlan(
-                policyPlanId,
-                "dummy_plan_name",
-                insuranceType,
-                new BigDecimal(500000),
-                new BigDecimal(500),
-                12,
-                21,
-                60,
-                "dummy_exclusions"
-        );
-
-        updatedPolicyPlan = new PolicyPlan(
-                policyPlanId,
-                "dummy_plan_updated",
-                insuranceType,
-                new BigDecimal(600000),
-                new BigDecimal(1000),
-                18,
-                21,
-                60,
-                "dummy_exclusions_updated"
-        );
-
-        newPolicyPlan = new PolicyPlan(
-                "dummy_plan_name",
-                insuranceType,
-                new BigDecimal(500000),
-                new BigDecimal(500),
-                12,
-                21,
-                60,
-                "dummy_exclusions"
-        );
-
-        validList = new ArrayList<>();
-
-        inValidList = new ArrayList<>(
-                List.of("Coverage Amount must be less than Base Premium!", "Minimum Age must be less than Maximum Age!")
+        policyPlan = new PolicyPlan(
+                policyPlanId, "Standard Health", InsuranceType.HEALTH,
+                new BigDecimal("500000"), new BigDecimal("500"), 12, 21, 60, "None"
         );
     }
 
-    @Test
-    void createPolicyPlan_whenPlanDoesNotExist_shouldSavePolicyPlan() {
-        // arrange
-        try (MockedStatic<ValidatePolicyPlan> validatePolicyPlanMockedStatic = Mockito.mockStatic(ValidatePolicyPlan.class);
-             MockedStatic<PolicyPlanMapper> policyPlanMapperMockedStatic = Mockito.mockStatic(PolicyPlanMapper.class)) {
-            validatePolicyPlanMockedStatic.when(() -> ValidatePolicyPlan.validatePolicyPlan(requestDto)).thenReturn(validList);
-            when(policyPlanRepository.findByPlanName(requestDto.getPlanName())).thenReturn(Optional.empty());
-            when(policyPlanRepository.save(any(PolicyPlan.class))).thenReturn(savedPolicyPlan);
+    @Nested
+    @DisplayName("Creation Logic")
+    class CreatePolicyPlan {
+        @Test
+        @DisplayName("Should save policy successfully when request is valid and name is unique")
+        void createPolicyPlan_whenPlanDoesNotExist_shouldSavePolicyPlan() {
+            // given
+            given(validatePolicyPlan.validatePolicyPlan(requestDto)).willReturn(List.of());
+            given(policyPlanRepository.findByPlanName(anyString())).willReturn(Optional.empty());
+            given(policyPlanRepository.save(any(PolicyPlan.class))).willReturn(policyPlan);
 
-            // act
+            // when
             policyPlanService.createPolicyPlan(requestDto);
 
-            // assert
-            assertNotNull(savedPolicyPlan);
-            assertEquals(requestDto.getPlanName(), savedPolicyPlan.getPlanName());
-            assertEquals(policyPlanId, savedPolicyPlan.getId());
-            assertEquals(validList.size(), 0);
-            verify(policyPlanRepository, times(1)).save(any(PolicyPlan.class));
-            verify(policyPlanRepository, times(1)).findByPlanName(requestDto.getPlanName());
-            validatePolicyPlanMockedStatic.verify(() -> ValidatePolicyPlan.validatePolicyPlan(any(PolicyPlanRequestDto.class)));
-            policyPlanMapperMockedStatic.verify(() -> PolicyPlanMapper.mapPolicyPlanRequestDtoToPolicyPlan(eq(requestDto), any(PolicyPlan.class), eq(false)));
+            // then
+            then(policyPlanRepository).should().save(any(PolicyPlan.class));
+            then(policyPlanRepository).should().findByPlanName(requestDto.getPlanName());
+        }
+
+        @Test
+        @DisplayName("Should throw ResourceAlreadyExistException when plan name already exists")
+        void createPolicyPlan_whenPlanDoesExist_shouldThrowException() {
+            // given
+            given(policyPlanRepository.findByPlanName(anyString())).willReturn(Optional.of(policyPlan));
+
+            // when / then
+            assertThatThrownBy(() -> policyPlanService.createPolicyPlan(requestDto)).isInstanceOf(ResourceAlreadyExistException.class);
+            then(policyPlanRepository).should(never()).save(any(PolicyPlan.class));
+        }
+
+        @Test
+        @DisplayName("Should throw PolicyValidationException when validation rules fail")
+        void createPolicyPlan_whenPlanIsInvalid_shouldThrowException() {
+            // given
+            given(validatePolicyPlan.validatePolicyPlan(requestDto)).willReturn(List.of("Invalid Coverage"));
+
+            // when / then
+            assertThatThrownBy(() -> policyPlanService.createPolicyPlan(requestDto)).isInstanceOf(PolicyValidationException.class);
         }
     }
 
-    @Test
-    void createPolicyPlan_whenPlanDoesExist_shouldThrowException(){
-        try (MockedStatic<ValidatePolicyPlan> validatePolicyPlanMockedStatic = Mockito.mockStatic(ValidatePolicyPlan.class);
-             MockedStatic<PolicyPlanMapper> policyPlanMapperMockedStatic = Mockito.mockStatic(PolicyPlanMapper.class)) {
-            when(policyPlanRepository.findByPlanName(requestDto.getPlanName())).thenReturn(Optional.of(savedPolicyPlan));
+    @Nested
+    @DisplayName("Update & Deactivate Logic")
+    class updateDeactivatePolicy {
+        @Test
+        @DisplayName("Should update existing policy plan")
+        void updatePolicyPlan_whenPlanExists_shouldUpdatePolicyPlan() {
+            // given
+            given(policyPlanRepository.findById(policyPlanId)).willReturn(Optional.of(policyPlan));
+            given(policyPlanRepository.save(policyPlan)).willReturn(policyPlan);
 
-            // act & assert
-            assertThrows(ResourceAlreadyExistException.class, () -> policyPlanService.createPolicyPlan(requestDto));
-            verify(policyPlanRepository, times(1)).findByPlanName(requestDto.getPlanName());
-        }
-    }
-
-    @Test
-    void createPolicyPlan_whenPlanIsInvalid_shouldThrowException(){
-        try (MockedStatic<ValidatePolicyPlan> validatePolicyPlanMockedStatic = Mockito.mockStatic(ValidatePolicyPlan.class);
-             MockedStatic<PolicyPlanMapper> policyPlanMapperMockedStatic = Mockito.mockStatic(PolicyPlanMapper.class)) {
-            validatePolicyPlanMockedStatic.when(() -> ValidatePolicyPlan.validatePolicyPlan(requestDto)).thenReturn(inValidList);
-            when(policyPlanRepository.findByPlanName(requestDto.getPlanName())).thenReturn(Optional.empty());
-
-            // act & assert
-            assertThrows(PolicyValidationException.class, () -> policyPlanService.createPolicyPlan(requestDto));
-            verify(policyPlanRepository, times(1)).findByPlanName(requestDto.getPlanName());
-            validatePolicyPlanMockedStatic.verify(() -> ValidatePolicyPlan.validatePolicyPlan(any(PolicyPlanRequestDto.class)));
-        }
-    }
-
-    @Test
-    void updatePolicyPlan_whenPlanExists_shouldUpdatePolicyPlan() {
-        // arrange
-        try(MockedStatic<PolicyPlanMapper> policyPlanMapperMockedStatic = Mockito.mockStatic(PolicyPlanMapper.class)){
-            when(policyPlanRepository.findById(policyPlanId)).thenReturn(Optional.of(savedPolicyPlan));
-            when(policyPlanRepository.save(savedPolicyPlan)).thenReturn(updatedPolicyPlan);
-
-            // act
+            // when
             policyPlanService.updatePolicyPlan(requestDto, policyPlanId.toString());
 
-            // assert
-            assertNotNull(savedPolicyPlan);
-            assertEquals("dummy_plan_updated", updatedPolicyPlan.getPlanName());
-            assertEquals(new BigDecimal(600000), updatedPolicyPlan.getCoverageAmount());
-            assertEquals(new BigDecimal(1000), updatedPolicyPlan.getBasePremium());
-            assertEquals(18, updatedPolicyPlan.getDurationMonths());
-            verify(policyPlanRepository, times(1)).findById(policyPlanId);
-            verify(policyPlanRepository, times(1)).save(savedPolicyPlan);
-            policyPlanMapperMockedStatic.verify(() -> PolicyPlanMapper.mapPolicyPlanRequestDtoToPolicyPlan(requestDto, savedPolicyPlan, true));
+            // then
+            then(policyPlanMapper).should().mapPolicyPlanRequestDtoToPolicyPlan(requestDto, policyPlan, true);
+            then(policyPlanRepository).should().save(policyPlan);
+        }
+
+        @Test
+        @DisplayName("Should throw ResourceNotFoundException when ID does not exist")
+        void updatePolicyPlan_whenPlanDoesNotExists_shouldUpdatePolicyPlan() {
+            // given
+            given(policyPlanRepository.findById(policyPlanId)).willReturn(Optional.empty());
+
+            // when / then
+            assertThatThrownBy(() -> policyPlanService.updatePolicyPlan(requestDto, policyPlanId.toString())).isInstanceOf(ResourceNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("Should deactivate policy by setting isActive to false")
+        void deactivatePolicyPlan_whenPlanDoesExists_shouldDeactivatePolicyPlan() {
+            // given
+            given(policyPlanRepository.findById(policyPlanId)).willReturn(Optional.of(policyPlan));
+
+            // when
+            policyPlanService.deactivatePolicyPlan(policyPlanId.toString());
+
+            // then
+            assertThat(policyPlan.getIsActive()).isFalse();
+            then(policyPlanRepository).should().save(policyPlan);
         }
     }
 
-    @Test
-    void updatePolicyPlan_whenPlanDoesNotExists_shouldUpdatePolicyPlan(){
-        // arrange
-        try(MockedStatic<PolicyPlanMapper> policyPlanMapperMockedStatic = Mockito.mockStatic(PolicyPlanMapper.class)){
-            when(policyPlanRepository.findById(policyPlanId)).thenReturn(Optional.empty());
+    @Nested
+    @DisplayName("Retrieval Logic")
+    class RetrievalLogic{
+        @Test
+        void activePolicyPlans_shouldReturnListOfPolicyPlanResponseDto() {
+            // given
+            var pageable = PageRequest.of(0, 5);
+            given(policyPlanRepository.findAllActivePlans(pageable, InsuranceType.HEALTH)).willReturn(List.of());
 
-            // act & assert
-            assertThrows(ResourceNotFoundException.class, () -> policyPlanService.updatePolicyPlan(requestDto, policyPlanId.toString()));
-            verify(policyPlanRepository, times(1)).findById(policyPlanId);
+            // when
+            policyPlanService.activePolicyPlans(0, 5, "HEALTH");
+
+            // then
+            then(policyPlanRepository).should().findAllActivePlans(pageable, InsuranceType.HEALTH);
         }
-    }
 
-    @Test
-    void deactivatePolicyPlan() {
-    }
+        @Test
+        void getPolicyPlan_whenPlanDoesExists_shouldReturnPolicyPlanResponseDto() {
+            // given
+            given(policyPlanRepository.findById(policyPlanId)).willReturn(Optional.of(policyPlan));
 
-    @Test
-    void activePolicyPlans() {
-    }
+            // when
+            policyPlanService.getPolicyPlan(policyPlanId.toString());;
 
-    @Test
-    void getPolicyPlan() {
+            // then
+            then(policyPlanMapper).should().mapPolicyPlanToPolicyPlanResponseDto(any(PolicyPlanResponseDto.class), eq(policyPlan));
+            then(policyPlanRepository).should().findById(policyPlanId);
+        }
     }
 }

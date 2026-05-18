@@ -1,13 +1,15 @@
 package com.insurance.policy.helper;
 
 import com.insurance.policy.dto.PolicyPlanRequestDto;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class ValidatePolicyPlan {
-    public static List<String> validatePolicyPlan(PolicyPlanRequestDto requestDto) {
+    public List<String> validatePolicyPlan(PolicyPlanRequestDto requestDto) {
         List<String> validationErrors = new ArrayList<>();
         if (requestDto.getBasePremium().compareTo(requestDto.getCoverageAmount()) >= 0) {
             validationErrors.add("Coverage Amount must be less than Base Premium!");

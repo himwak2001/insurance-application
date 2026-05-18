@@ -26,6 +26,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PolicyPlanServiceImpl implements IPolicyPlanService {
     private final IPolicyPlanRepository policyPlanRepository;
+    private final PolicyPlanMapper policyPlanMapper;
+    private final ValidatePolicyPlan validatePlan;
 
     @CacheEvict(value = "policyPlanCache", key = "#requestDto.planName")
     @Override
@@ -35,12 +37,12 @@ public class PolicyPlanServiceImpl implements IPolicyPlanService {
             throw new ResourceAlreadyExistException("Policy Plan", "Plan Name", requestDto.getPlanName());
         }
 
-        List<String> isValid = ValidatePolicyPlan.validatePolicyPlan(requestDto);
+        List<String> isValid = validatePlan.validatePolicyPlan(requestDto);
         if (!isValid.isEmpty()) {
             throw new PolicyValidationException(isValid);
         }
         PolicyPlan newPolicyPlan = new PolicyPlan();
-        PolicyPlanMapper.mapPolicyPlanRequestDtoToPolicyPlan(requestDto, newPolicyPlan, false);
+        policyPlanMapper.mapPolicyPlanRequestDtoToPolicyPlan(requestDto, newPolicyPlan, false);
         newPolicyPlan.setId(UUID.randomUUID());
         newPolicyPlan.setIsActive(true);
         policyPlanRepository.save(newPolicyPlan);
@@ -53,7 +55,7 @@ public class PolicyPlanServiceImpl implements IPolicyPlanService {
         if (existingPolicy.isEmpty()) {
             throw new ResourceNotFoundException("PolicyPlan", "Policy Plan Id", policyId);
         }
-        PolicyPlanMapper.mapPolicyPlanRequestDtoToPolicyPlan(requestDto, existingPolicy.get(), true);
+        policyPlanMapper.mapPolicyPlanRequestDtoToPolicyPlan(requestDto, existingPolicy.get(), true);
         policyPlanRepository.save(existingPolicy.get());
         return policyId;
     }
@@ -83,7 +85,7 @@ public class PolicyPlanServiceImpl implements IPolicyPlanService {
             throw new ResourceNotFoundException("PolicyPlan", "Policy Plan Id", planId);
         }
         PolicyPlanResponseDto responseDto = new PolicyPlanResponseDto();
-        PolicyPlanMapper.mapPolicyPlanToPolicyPlanResponseDto(responseDto, existingPolicy.get());
+        policyPlanMapper.mapPolicyPlanToPolicyPlanResponseDto(responseDto, existingPolicy.get());
         return responseDto;
     }
 
