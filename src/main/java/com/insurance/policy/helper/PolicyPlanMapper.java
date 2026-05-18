@@ -4,9 +4,11 @@ import com.insurance.policy.dto.PolicyPlanRequestDto;
 import com.insurance.policy.dto.PolicyPlanResponseDto;
 import com.insurance.policy.entity.InsuranceType;
 import com.insurance.policy.entity.PolicyPlan;
+import org.springframework.stereotype.Component;
 
+@Component
 public class PolicyPlanMapper {
-    public static void mapPolicyPlanRequestDtoToPolicyPlan(PolicyPlanRequestDto requestDto, PolicyPlan policyPlan, boolean isUpdate) {
+    public void mapPolicyPlanRequestDtoToPolicyPlan(PolicyPlanRequestDto requestDto, PolicyPlan policyPlan, boolean isUpdate) {
         policyPlan.setPlanName(requestDto.getPlanName());
         if (!isUpdate)
             policyPlan.setInsuranceType(InsuranceType.valueOf(requestDto.getInsuranceType().trim().toUpperCase()));
@@ -18,7 +20,7 @@ public class PolicyPlanMapper {
         policyPlan.setExclusions(requestDto.getExclusions());
     }
 
-    public static void mapPolicyPlanToPolicyPlanResponseDto(PolicyPlanResponseDto responseDto, PolicyPlan policyPlan) {
+    public void mapPolicyPlanToPolicyPlanResponseDto(PolicyPlanResponseDto responseDto, PolicyPlan policyPlan) {
         responseDto.setId(policyPlan.getId());
         responseDto.setPlanName(policyPlan.getPlanName());
         responseDto.setInsuranceType(policyPlan.getInsuranceType());
