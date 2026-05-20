@@ -25,6 +25,18 @@ spring:
         jwt:
           jwk-set-uri: "http://localhost:8180/realms/insurance_realme/protocol/openid-connect/certs"
 
+  redis:
+    host: localhost
+    port: 6379
+  cache:
+    type: redis
+
+logging:
+  level:
+    org:
+      springframework:
+        cache: TRACE
+
 info:
   app:
     name: "Insurance Policy & Claims Management System "

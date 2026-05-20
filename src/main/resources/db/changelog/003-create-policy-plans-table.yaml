@@ -1,0 +1,43 @@
+databaseChangeLog:
+  - changeSet:
+      id: '003'
+      author: himanshu
+      changes:
+        - createTable:
+            tableName: policy_plan_tbl
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: plan_name
+                  type: VARCHAR(50)
+              - column:
+                  name: insurance_type
+                  type: VARCHAR(20)
+              - column:
+                  name: coverage_amount
+                  type: NUMERIC(12, 2)
+              - column:
+                  name: base_premium
+                  type: NUMERIC(12, 2)
+              - column:
+                  name: duration_months
+                  type: INTEGER
+              - column:
+                  name: min_age
+                  type: INTEGER
+              - column:
+                  name: exclusions
+                  type: VARCHAR(50)
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+              - column:
+                  name: created_at
+                  type: DATE
+              - column:
+                  name: updated_at
+                  type: DATE
